@@ -2,6 +2,7 @@ package com.glqdlt.exampl.jtaatomikos;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
+import org.h2.jdbcx.JdbcDataSource;
 import org.hibernate.engine.transaction.jta.platform.internal.AbstractJtaPlatform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,14 +45,18 @@ public class DbConfig {
 
         @Bean("db1Ds")
         public DataSource dataSource() {
-            MysqlXADataSource mysqlXADataSource = new MysqlXADataSource();
-            mysqlXADataSource.setURL(environment.getProperty("d1.url"));
-            mysqlXADataSource.setUser(environment.getProperty("d1.user"));
-            mysqlXADataSource.setPassword(environment.getProperty("d1.password"));
+            JdbcDataSource h2Source = new JdbcDataSource();
+            h2Source.setURL(environment.getProperty("d1.url"));
+            h2Source.setUser(environment.getProperty("d1.user"));
+            h2Source.setPassword(environment.getProperty("d1.password"));
+
 
             AtomikosDataSourceBean atomikosDataSourceBean = new AtomikosDataSourceBean();
-            atomikosDataSourceBean.setXaDataSource(mysqlXADataSource);
+            atomikosDataSourceBean.setXaDataSource(h2Source);
             atomikosDataSourceBean.setUniqueResourceName("d1");
+            atomikosDataSourceBean.setMaxPoolSize(4);
+            atomikosDataSourceBean.setTestQuery("select 1");
+            atomikosDataSourceBean.setConcurrentConnectionValidation(true);
             return atomikosDataSourceBean;
         }
 
@@ -99,6 +104,9 @@ public class DbConfig {
             AtomikosDataSourceBean atomikosDataSourceBean = new AtomikosDataSourceBean();
             atomikosDataSourceBean.setXaDataSource(mysqlXADataSource);
             atomikosDataSourceBean.setUniqueResourceName("d2");
+            atomikosDataSourceBean.setMaxPoolSize(4);
+            atomikosDataSourceBean.setConcurrentConnectionValidation(true);
+            atomikosDataSourceBean.setTestQuery("select 1");
             return atomikosDataSourceBean;
         }
 

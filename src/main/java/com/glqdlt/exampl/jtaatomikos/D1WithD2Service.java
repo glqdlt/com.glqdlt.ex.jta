@@ -25,7 +25,7 @@ public class D1WithD2Service {
 
     @Transactional(transactionManager = "jtaTxm")
     public void save() {
-        d1Service.save("d1");
         d2Service.save("d2");
+        d1Service.save("d1");
     }
 }
