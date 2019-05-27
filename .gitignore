@@ -32,3 +32,5 @@ HELP.md
 mvnw.cmd
 mvnw
 .mvn
+
+application-qa.properties
