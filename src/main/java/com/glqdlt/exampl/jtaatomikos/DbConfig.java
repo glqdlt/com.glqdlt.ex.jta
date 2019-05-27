@@ -2,10 +2,12 @@ package com.glqdlt.exampl.jtaatomikos;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
+import org.hibernate.engine.transaction.jta.platform.internal.AbstractJtaPlatform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -15,6 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.util.HashMap;
 
 /**
  * @author Jhun
@@ -33,6 +36,9 @@ public class DbConfig {
     public static class Db1 {
 
         @Autowired
+        private CustomJtaHibernateImp customJtaHibernateImp;
+
+        @Autowired
         private Environment environment;
 
 
@@ -49,10 +55,13 @@ public class DbConfig {
             return atomikosDataSourceBean;
         }
 
+        @DependsOn("jtaTxm")
         @Bean("db1Emf")
         public LocalContainerEntityManagerFactoryBean emf(@Qualifier("db1Ds") DataSource dataSource) {
+
             LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-            localContainerEntityManagerFactoryBean.setDataSource(dataSource);
+            localContainerEntityManagerFactoryBean.setJtaDataSource(dataSource);
+            localContainerEntityManagerFactoryBean.setJpaPropertyMap(Db2.generateHibernateProps(customJtaHibernateImp));
             localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db1");
             localContainerEntityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
             return localContainerEntityManagerFactoryBean;
@@ -73,6 +82,8 @@ public class DbConfig {
     @Configuration
     public static class Db2 {
 
+        @Autowired
+        private CustomJtaHibernateImp customJtaHibernateImp;
 
         @Autowired
         private Environment environment;
@@ -91,12 +102,25 @@ public class DbConfig {
             return atomikosDataSourceBean;
         }
 
+        public static HashMap<String, Object> generateHibernateProps(AbstractJtaPlatform abstractJtaPlatform) {
+            HashMap<String, Object> properties = new HashMap<>();
+            properties.put("hibernate.transaction.jta.platform", abstractJtaPlatform);
+            properties.put("javax.persistence.transactionType", "JTA");
+            properties.put("spring.jpa.hibernate.naming.physical-strategy",
+                    "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
+            return properties;
+        }
+
+        @DependsOn("jtaTxm")
         @Bean("db2Emf")
-        public LocalContainerEntityManagerFactoryBean emf(@Qualifier("db2Ds") DataSource dataSource) {
+        public LocalContainerEntityManagerFactoryBean emf(@Qualifier("db2Ds") DataSource dataSource
+        ) {
+
             LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-            localContainerEntityManagerFactoryBean.setDataSource(dataSource);
             localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db2");
+            localContainerEntityManagerFactoryBean.setJpaPropertyMap(generateHibernateProps(customJtaHibernateImp));
             localContainerEntityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+            localContainerEntityManagerFactoryBean.setJtaDataSource(dataSource);
             return localContainerEntityManagerFactoryBean;
         }
 
@@ -104,7 +128,5 @@ public class DbConfig {
         public PlatformTransactionManager nmpTXM(@Qualifier("db2Emf") EntityManagerFactory entityManagerFactory) {
             return new JpaTransactionManager(entityManagerFactory);
         }
-
-
     }
 }

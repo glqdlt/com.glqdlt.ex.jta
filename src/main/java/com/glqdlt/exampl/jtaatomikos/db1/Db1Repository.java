@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Jhun
  * 2019-05-27
  */
-public interface Db1Repository extends JpaRepository<TxTester, Integer> {
+public interface Db1Repository extends JpaRepository<Db1TxTester, Integer> {
 }
