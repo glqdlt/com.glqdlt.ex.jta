@@ -1,4 +1,4 @@
-package com.glqdlt.exampl.jtaatomikos.db2;
+package com.glqdlt.exampl.jtaatomikos.db1.member;
 
 import lombok.Data;
 
@@ -9,17 +9,17 @@ import java.util.Date;
  * @author Jhun
  * 2019-05-27
  */
-@Entity(name = "db2_tx")
-@Table(name = "mpoker_datadb.tb_cms_tx")
+@Entity(name = "db1_tx")
+@Table(name = "tb_members")
 @Data
-public class Db2TxTester {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer seq;
-
-    private String value;
-
+    private String name;
+    private Long amount;
+    @Column(name = "reg_date")
     private Date regDate = new Date();
 
 }

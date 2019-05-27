@@ -9,7 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class JtaAtomikosApplication implements CommandLineRunner {
 
     @Autowired
-    private D1WithD2Service d1WithD2Service;
+    private CouponExecute couponExecute;
+
+    @Autowired
+    private MemberService memberService;
 
     public static void main(String[] args) {
         SpringApplication.run(JtaAtomikosApplication.class, args);
@@ -17,6 +20,8 @@ public class JtaAtomikosApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        d1WithD2Service.save();
+
+        memberService.createMember("tester", 0L);
+        couponExecute.execute("tester", 999L);
     }
 }

@@ -43,7 +43,7 @@ public class DbConfig {
         private Environment environment;
 
 
-        @Bean("db1Ds")
+        @Bean(name = "db1Ds")
         public DataSource dataSource() {
             JdbcDataSource h2Source = new JdbcDataSource();
             h2Source.setURL(environment.getProperty("d1.url"));
@@ -61,13 +61,13 @@ public class DbConfig {
         }
 
         @DependsOn("jtaTxm")
-        @Bean("db1Emf")
+        @Bean(name = "db1Emf")
         public LocalContainerEntityManagerFactoryBean emf(@Qualifier("db1Ds") DataSource dataSource) {
 
             LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
             localContainerEntityManagerFactoryBean.setJtaDataSource(dataSource);
             localContainerEntityManagerFactoryBean.setJpaPropertyMap(Db2.generateHibernateProps(customJtaHibernateImp));
-            localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db1");
+            localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db1.*");
             localContainerEntityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
             return localContainerEntityManagerFactoryBean;
         }
@@ -94,15 +94,15 @@ public class DbConfig {
         private Environment environment;
 
 
-        @Bean("db2Ds")
+        @Bean(name = "db2Ds")
         public DataSource dataSource() {
-            MysqlXADataSource mysqlXADataSource = new MysqlXADataSource();
-            mysqlXADataSource.setURL(environment.getProperty("d2.url"));
-            mysqlXADataSource.setUser(environment.getProperty("d2.user"));
-            mysqlXADataSource.setPassword(environment.getProperty("d2.password"));
+            JdbcDataSource h2Source = new JdbcDataSource();
+            h2Source.setURL(environment.getProperty("d2.url"));
+            h2Source.setUser(environment.getProperty("d2.user"));
+            h2Source.setPassword(environment.getProperty("d2.password"));
 
             AtomikosDataSourceBean atomikosDataSourceBean = new AtomikosDataSourceBean();
-            atomikosDataSourceBean.setXaDataSource(mysqlXADataSource);
+            atomikosDataSourceBean.setXaDataSource(h2Source);
             atomikosDataSourceBean.setUniqueResourceName("d2");
             atomikosDataSourceBean.setMaxPoolSize(4);
             atomikosDataSourceBean.setConcurrentConnectionValidation(true);
@@ -114,18 +114,20 @@ public class DbConfig {
             HashMap<String, Object> properties = new HashMap<>();
             properties.put("hibernate.transaction.jta.platform", abstractJtaPlatform);
             properties.put("javax.persistence.transactionType", "JTA");
+//            FIXME create-drop 은 실무에서 쓰지 마세요.
+            properties.put("hibernate.hbm2ddl.auto", "create-drop");
             properties.put("spring.jpa.hibernate.naming.physical-strategy",
                     "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
             return properties;
         }
 
         @DependsOn("jtaTxm")
-        @Bean("db2Emf")
+        @Bean(name = "db2Emf")
         public LocalContainerEntityManagerFactoryBean emf(@Qualifier("db2Ds") DataSource dataSource
         ) {
 
             LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-            localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db2");
+            localContainerEntityManagerFactoryBean.setPackagesToScan("com.glqdlt.exampl.jtaatomikos.db2.*");
             localContainerEntityManagerFactoryBean.setJpaPropertyMap(generateHibernateProps(customJtaHibernateImp));
             localContainerEntityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
             localContainerEntityManagerFactoryBean.setJtaDataSource(dataSource);
